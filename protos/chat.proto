@@ -1,0 +1,43 @@
+syntax = "proto3";
+
+option java_multiple_files = true;
+option java_package = "org.example.proto.chat";
+option java_outer_classname = "ChatProto";
+
+package chat;
+
+service ChatService {
+  // Bidirectional streaming for real-time chat
+  rpc ChatStream (stream ChatMessage) returns (stream ChatResponse) {}
+
+  // Simple RPC to send a message (can be used for server messages or testing)
+  rpc SendMessage (ChatMessage) returns (MessageAck) {}
+}
+
+// ChatResponse is a wrapper that can contain either a ChatMessage or ErrorMessage
+message ChatResponse {
+  oneof response {
+    ChatMessage message = 1;
+    ErrorMessage error = 2;
+  }
+}
+
+message ChatMessage {
+  string user_id = 1;  // User ID or "SERVER" for system messages
+  string content = 2;  // The actual message content
+  string timestamp = 3;  // Timestamp as string (milliseconds since epoch)
+}
+
+message ErrorMessage {
+  string error_code = 1;  // Error code (e.g., "MISSING_USER_ID", "INVALID_MESSAGE")
+  string error_message = 2;  // Human-readable error message
+  string timestamp = 3;  // Timestamp when the error occurred
+}
+
+message MessageAck {
+  bool received = 1;  // Whether the message was received successfully
+  string server_message = 2;  // Additional context from the server
+  string timestamp = 3;  // Timestamp of acknowledgment
+  // Add an optional error field for failed message sends
+  ErrorMessage error = 4;  // Only present if there was an error
+}
